@@ -1,5 +1,4 @@
 {
-<<<<<<< HEAD
   "name": "hng-onboarding-app",
   "version": "0.1.0",
   "private": true,
@@ -14,32 +13,7 @@
   "dependencies": {
     "next": "16.0.8",
     "react": "19.2.1",
-    "react-dom": "19.2.1"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.0.8",
-    "prettier": "^3.7.4",
-    "prettier-plugin-tailwindcss": "^0.7.2",
-    "tailwindcss": "^4",
-    "typescript": "^5"
-  }
-}
-=======
-  "name": "my-v0-project",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "build": "next build",
-    "dev": "next dev",
-    "lint": "eslint .",
-    "start": "next start"
-  },
-  "dependencies": {
+    "react-dom": "19.2.1",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "1.2.2",
     "@radix-ui/react-alert-dialog": "1.1.4",
@@ -78,11 +52,8 @@
     "immer": "latest",
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",
-    "next": "16.0.7",
     "next-themes": "^0.4.6",
-    "react": "19.2.0",
     "react-day-picker": "9.8.0",
-    "react-dom": "19.2.0",
     "react-hook-form": "^7.60.0",
     "react-resizable-panels": "^2.1.7",
     "recharts": "latest",
@@ -105,4 +76,3 @@
     "typescript": "^5"
   }
 }
->>>>>>> a6a4143ecfa9a5789c3bae79978d91782bb1d1f9
