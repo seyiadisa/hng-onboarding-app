@@ -1,37 +1,9 @@
-@import "tailwindcss";
-<<<<<<< HEAD
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
-=======
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Update custom properties with TourWidget design tokens */
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -65,12 +37,6 @@ body {
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-
-  /* Add custom utility tokens */
-  --primary-light: oklch(0.3 0.08 250);
-  --success: oklch(0.65 0.15 142);
-  --card-bg: oklch(0.98 0.01 240);
-  --neutral-dark: oklch(0.1 0 0);
 }
 
 .dark {
@@ -109,8 +75,8 @@ body {
 }
 
 @theme inline {
-  --font-sans: "Geist", "Geist Fallback";
-  --font-mono: "Geist Mono", "Geist Mono Fallback";
+  --font-sans: 'Geist', 'Geist Fallback';
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -147,10 +113,6 @@ body {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --color-primary-light: var(--primary-light);
-  --color-success: var(--success);
-  --color-card-bg: var(--card-bg);
-  --color-neutral-dark: var(--neutral-dark);
 }
 
 @layer base {
@@ -160,22 +122,4 @@ body {
   body {
     @apply bg-background text-foreground;
   }
-
-  /* Add utility classes for the SaaS app */
-  .container-responsive {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
-  }
-
-  .section-spacing {
-    @apply py-16 sm:py-24;
-  }
-
-  .gradient-text {
-    @apply bg-gradient-to-r from-primary via-accent to-success bg-clip-text text-transparent;
-  }
-
-  .input-base {
-    @apply w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground;
-  }
 }
->>>>>>> a6a4143ecfa9a5789c3bae79978d91782bb1d1f9
