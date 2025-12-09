@@ -23,10 +23,10 @@ export default function EditStepPage() {
 
   useEffect(() => {
     if (step) {
-      setTitle(step.title)
-      setDescription(step.description)
-      setTargetSelector(step.targetSelector)
-      setPosition(step.position)
+      setTitle(step.title ?? "")
+      setDescription(step.description ?? "")
+      setTargetSelector(step.targetSelector ?? "")
+      setPosition(step.position ?? "bottom")
     }
   }, [step])
 
@@ -42,13 +42,13 @@ export default function EditStepPage() {
     e.preventDefault()
     const newErrors: Record<string, string> = {}
 
-    if (!title.trim()) newErrors.title = "Title is required"
-    if (!targetSelector.trim()) newErrors.selector = "Selector is required"
+    if (!title?.trim()) newErrors.title = "Title is required"
+    if (!targetSelector?.trim()) newErrors.selector = "Selector is required"
 
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
-      return
-    }
+        setErrors(newErrors)
+        return
+      }
 
     const updatedSteps = tour.steps.map((s) =>
       s.id === step.id ? { ...s, title, description, targetSelector, position: position as any } : s,

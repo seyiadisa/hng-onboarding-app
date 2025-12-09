@@ -1,18 +1,35 @@
 "use client"
+
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
-import { useAuth } from "@/lib/auth-context"
+import { useAuth } from "@/lib/auth-context" // Fixed import usage below
 import { Button } from "@/components/ui/button"
 import { Avatar } from "@/components/ui/avatar"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export function DashboardSidebar() {
   const router = useRouter()
   const pathname = usePathname()
-  const { user, logout } = useAuth()
+  // FIX: Destructure 'signOut' instead of 'logout' to match AuthContextType
+  const { user, signOut } = useAuth()
 
-  const handleLogout = () => {
-    logout()
-    router.push("/")
+  const handleLogout = async () => {
+    try {
+      await signOut() // Use the function from context
+      router.push("/auth/login") // Redirect to login page
+    } catch (error) {
+      console.error("Error signing out:", error)
+    }
   }
 
   const menuItems = [
@@ -34,7 +51,9 @@ export function DashboardSidebar() {
             key={item.href}
             href={item.href}
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-              pathname === item.href ? "bg-primary text-white" : "text-foreground hover:bg-gray-100"
+              pathname === item.href
+                ? "bg-primary text-white"
+                : "text-foreground hover:bg-gray-100"
             }`}
           >
             <span className="text-xl">{item.icon}</span>
@@ -45,15 +64,39 @@ export function DashboardSidebar() {
 
       <div className="p-6 border-t border-border space-y-4">
         <div className="flex items-center gap-3">
-          <Avatar initials={user?.name?.substring(0, 2).toUpperCase() || "U"} size="sm" />
+          <Avatar 
+            initials={user?.name?.substring(0, 2).toUpperCase() || "U"} 
+            size="sm" 
+          />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold truncate">{user?.name}</p>
             <p className="text-xs text-gray-500 truncate">{user?.email}</p>
           </div>
         </div>
-        <Button variant="secondary" size="sm" className="w-full" onClick={handleLogout}>
-          Logout
-        </Button>
+
+        {/* Logout Confirmation Dialog */}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="secondary" size="sm" className="w-full">
+              Logout
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
+              <AlertDialogDescription>
+                You will be redirected to the login page.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              {/* handleLogout runs only on confirmation */}
+              <AlertDialogAction onClick={handleLogout}>
+                Confirm Logout
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </aside>
   )

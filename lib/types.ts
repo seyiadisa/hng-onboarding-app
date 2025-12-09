@@ -1,3 +1,5 @@
+export type CreateStep = Omit<Step, "id" | "tourId">
+
 export interface Tour {
   id: string
   title: string
@@ -5,6 +7,10 @@ export interface Tour {
   createdDate: string
   steps: Step[]
   status: "active" | "draft"
+}
+
+export type CreateTour = Omit<Tour, "id" | "createdDate"> & {
+  steps: CreateStep[]
 }
 
 export interface Step {

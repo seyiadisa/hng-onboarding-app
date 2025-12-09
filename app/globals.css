@@ -150,4 +150,10 @@
   .input-base {
     @apply w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground;
   }
+
+  @layer base {
+    button {
+      cursor: pointer !important;
+    }
+  }
 }

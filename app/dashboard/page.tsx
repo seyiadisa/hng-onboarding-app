@@ -1,15 +1,22 @@
 "use client"
-
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation" // Import useRouter
 import { useToursStore } from "@/lib/store"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Modal } from "@/components/ui/modal"
 import { format } from "date-fns"
+import { toast } from "sonner"
 
 export default function ToursPage() {
-  const { tours, deleteTour } = useToursStore()
+  const router = useRouter() // Initialize router
+  const { tours, loading, fetchTours, deleteTour } = useToursStore()
+
+  useEffect(() => {
+    fetchTours()
+  }, [])
+
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; tourId?: string }>({ isOpen: false })
   const [embedModal, setEmbedModal] = useState<{ isOpen: boolean; code?: string }>({ isOpen: false })
 
@@ -45,7 +52,11 @@ export default function ToursPage() {
 
       {/* Content */}
       <div className="flex-1 overflow-auto p-6">
-        {tours.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center py-10">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          </div>
+        ) : tours.length === 0 ? (
           <Card className="flex items-center justify-center h-64">
             <div className="text-center">
               <p className="text-gray-600 mb-4">No tours yet. Create your first one!</p>
@@ -57,14 +68,16 @@ export default function ToursPage() {
         ) : (
           <div className="grid grid-cols-1 gap-6">
             {tours.map((tour) => (
-              <Card key={tour.id} hoverable className="overflow-hidden">
+              <Card 
+                key={tour.id} 
+                className="overflow-hidden cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={() => router.push(`/dashboard/tours/${tour.id}`)}
+              >
                 <div className="flex items-center justify-between p-6">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-lg font-bold">{tour.title}</h3>
-                      <span
-                        className={`text-xs px-2 py-1 rounded ${tour.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}
-                      >
+                      <span className={`text-xs px-2 py-1 rounded ${tour.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}>
                         {tour.status}
                       </span>
                     </div>
@@ -75,18 +88,36 @@ export default function ToursPage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => handleShowEmbed(tour.id)}>
+                    {/* Important: onClick={(e) => e.stopPropagation()} prevents the card click from firing */}
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleShowEmbed(tour.id)
+                      }}
+                      className="hover:bg-black hover:text-white transition-colors"
+                    >
                       Embed
                     </Button>
-                    <Link href={`/dashboard/tours/${tour.id}`}>
-                      <Button variant="secondary" size="sm">
+                    
+                    <Link href={`/dashboard/tours/${tour.id}`} onClick={(e) => e.stopPropagation()}>
+                      <Button 
+                        variant="secondary" 
+                        size="sm"
+                        className="hover:bg-black hover:text-white transition-colors"
+                      >
                         Edit
                       </Button>
                     </Link>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setDeleteModal({ isOpen: true, tourId: tour.id })}
+                    
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setDeleteModal({ isOpen: true, tourId: tour.id })
+                      }}
                     >
                       Delete
                     </Button>
@@ -98,14 +129,15 @@ export default function ToursPage() {
         )}
       </div>
 
-      {/* Modals */}
+      {/* Modals remain exactly the same... */}
       <Modal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false })} title="Delete Tour">
         <p className="text-gray-600 mb-6">Are you sure you want to delete this tour? This action cannot be undone.</p>
         <div className="flex gap-3 justify-end">
-          <Button variant="secondary" onClick={() => setDeleteModal({ isOpen: false })}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={() => deleteModal.tourId && handleDelete(deleteModal.tourId)}>
+          <Button variant="secondary" onClick={() => setDeleteModal({ isOpen: false })}>Cancel</Button>
+          <Button 
+            variant="destructive" 
+            onClick={() => deleteModal.tourId && handleDelete(deleteModal.tourId)}
+          >
             Delete
           </Button>
         </div>
@@ -121,6 +153,7 @@ export default function ToursPage() {
           className="w-full"
           onClick={() => {
             navigator.clipboard.writeText(embedModal.code || "")
+            toast.success("Copied to clipboard")
             setEmbedModal({ isOpen: false })
           }}
         >

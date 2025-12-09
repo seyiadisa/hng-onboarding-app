@@ -9,7 +9,7 @@ import type { User as AppUser } from './types'
 interface AuthContextType {
   user: AppUser | null
   session: Session | null
-  loading: boolean
+  isLoading: boolean
   signUp: (email: string, password: string, name: string) => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
@@ -19,7 +19,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [isLoading, setLoading] = useState(true)
   const [user, setUser] = useState<AppUser | null>(null)
 
   useEffect(() => {
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, isLoading, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   )
