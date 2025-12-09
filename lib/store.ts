@@ -1,4 +1,3 @@
-// lib/store.ts (updated: removed mock data, integrated Supabase for CRUD)
 import { create } from "zustand"
 import type { Tour } from "./types"
 import { supabase } from "./supabase"
@@ -32,7 +31,6 @@ export const useToursStore = create<ToursStore>((set, get) => ({
 
       if (error) throw error
 
-      // Assuming steps are fetched separately or joined; for simplicity, fetch steps too
       const toursWithSteps = await Promise.all(
         (data || []).map(async (tour: any) => {
           const { data: stepsData } = await supabase
@@ -71,7 +69,6 @@ export const useToursStore = create<ToursStore>((set, get) => ({
 
       if (tourError) throw tourError
 
-      // Insert steps if provided
       if (tourData.steps && tourData.steps.length > 0) {
         const stepsWithTourId = tourData.steps.map((step: any) => ({ ...step, tourId: tour.id }))
         const { error: stepsError } = await supabase
@@ -100,7 +97,6 @@ export const useToursStore = create<ToursStore>((set, get) => ({
 
       if (tourError) throw tourError
 
-      // Update steps if changed
       const { error: stepsError } = await supabase
         .from('steps')
         .upsert(tour.steps)
