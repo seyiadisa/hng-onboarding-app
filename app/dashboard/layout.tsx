@@ -1,0 +1,17 @@
+// app/dashboard/layout.tsx
+import { DashboardSidebar } from "@/components/layout/dashboard-sidebar"
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex h-screen bg-gray-50">
+      <DashboardSidebar />
+      <main className="flex-1 overflow-auto p-8">
+        {children}
+      </main>
+    </div>
+  )
+}
