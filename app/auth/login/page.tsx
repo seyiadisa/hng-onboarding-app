@@ -1,6 +1,6 @@
+// app/auth/login/page.tsx
 "use client"
 
-import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -11,9 +11,9 @@ import { Card } from "@/components/ui/card"
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login } = useAuth()
-  const [email, setEmail] = useState("demo@tourwidget.com")
-  const [password, setPassword] = useState("password")
+  const { signIn } = useAuth()  // ← was login, now signIn
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -23,10 +23,10 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      await login(email, password)
+      await signIn(email, password)
       router.push("/dashboard")
-    } catch (err) {
-      setError("Login failed. Please try again.")
+    } catch (err: any) {
+      setError(err.message || "Invalid email or password")
     } finally {
       setLoading(false)
     }
@@ -36,7 +36,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/5 px-4">
       <Card className="w-full max-w-md p-8">
         <h1 className="text-3xl font-bold text-center mb-2">Welcome Back</h1>
-        <p className="text-center text-gray-600 mb-8">Sign in to your account</p>
+        <p className="text-center text-center text-gray-600 mb-8">Sign in to your account</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
@@ -47,7 +47,6 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-
           <Input
             label="Password"
             type="password"
@@ -59,7 +58,7 @@ export default function LoginPage() {
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
 
-          <Button type="submit" variant="primary" className="w-full" loading={loading}>
+          <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Signing in..." : "Sign In"}
           </Button>
         </form>
@@ -70,14 +69,6 @@ export default function LoginPage() {
             Sign up
           </Link>
         </p>
-
-        <div className="mt-6 pt-6 border-t border-border text-xs text-center text-gray-500">
-          Demo credentials:
-          <br />
-          Email: demo@tourwidget.com
-          <br />
-          Password: password
-        </div>
       </Card>
     </div>
   )
