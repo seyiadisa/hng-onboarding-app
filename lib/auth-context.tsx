@@ -1,62 +1,103 @@
+// lib/auth-context.tsx (new file)
 "use client"
 
-import type React from "react"
-import { createContext, useContext, useState, useEffect } from "react"
-import type { User } from "./types"
-import { mockUser } from "./mock-data"
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { Session, User } from '@supabase/supabase-js'
+import { supabase } from './supabase'
+import type { User as AppUser } from './types'
 
 interface AuthContextType {
-  user: User | null
-  isLoading: boolean
-  login: (email: string, password: string) => Promise<void>
-  register: (email: string, password: string, name: string) => Promise<void>
-  logout: () => void
+  user: AppUser | null
+  session: Session | null
+  loading: boolean
+  signUp: (email: string, password: string, name: string) => Promise<void>
+  signIn: (email: string, password: string) => Promise<void>
+  signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [session, setSession] = useState<Session | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<AppUser | null>(null)
 
   useEffect(() => {
-    // Check localStorage for auth token
-    const token = localStorage.getItem("auth_token")
-    if (token) {
-      setUser(mockUser)
-    }
-    setIsLoading(false)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setLoading(false)
+    })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+      setLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
-  const login = async (email: string, password: string) => {
-    setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    localStorage.setItem("auth_token", "mock_token_" + Date.now())
-    setUser(mockUser)
-    setIsLoading(false)
+  useEffect(() => {
+    if (session?.user) {
+      const appUser: AppUser = {
+        id: session.user.id,
+        email: session.user.email || '',
+        name: session.user.user_metadata?.name || '',
+        createdAt: session.user.created_at || '',
+      }
+      setUser(appUser)
+    } else {
+      setUser(null)
+    }
+  }, [session])
+
+  const signUp = async (email: string, password: string, name: string) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name },
+      },
+    })
+
+    if (error) throw error
+    if (data.user) {
+      // Auto-confirm if email confirmations are disabled in Supabase project settings
+      // Otherwise, handle email confirmation flow here if needed
+    }
   }
 
-  const register = async (email: string, password: string, name: string) => {
-    setIsLoading(true)
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    localStorage.setItem("auth_token", "mock_token_" + Date.now())
-    setUser({ ...mockUser, email, name })
-    setIsLoading(false)
+  const signIn = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error) throw error
   }
 
-  const logout = () => {
-    localStorage.removeItem("auth_token")
-    setUser(null)
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut()
+    if (error) throw error
   }
 
-  return <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>{children}</AuthContext.Provider>
+  const value = {
+    user,
+    session,
+    loading,
+    signUp,
+    signIn,
+    signOut,
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider")
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider')
   }
   return context
 }

@@ -1,3 +1,4 @@
+// app/auth/register/page.tsx (updated: fixed Input usage assuming shadcn/ui, added Label for proper form, integrated secure flow)
 "use client"
 
 import type React from "react"
@@ -7,11 +8,12 @@ import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
 
 export default function RegisterPage() {
   const router = useRouter()
-  const { register } = useAuth()
+  const { signUp } = useAuth()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -24,10 +26,10 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      await register(email, password, name)
+      await signUp(email, password, name)
       router.push("/dashboard")
-    } catch (err) {
-      setError("Registration failed. Please try again.")
+    } catch (err: any) {
+      setError(err.message || "Registration failed. Please try again.")
     } finally {
       setLoading(false)
     }
@@ -40,36 +42,45 @@ export default function RegisterPage() {
         <p className="text-center text-gray-600 mb-8">Start your free trial today</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            label="Full Name"
-            type="text"
-            placeholder="Your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
+          <div className="space-y-2">
+            <Label htmlFor="name">Full Name</Label>
+            <Input
+              id="name"
+              type="text"
+              placeholder="Your name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
 
-          <Input
-            label="Email"
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-          <Input
-            label="Password"
-            type="password"
-            placeholder="Create a password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Create a password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
 
-          <Button type="submit" variant="primary" className="w-full" loading={loading}>
+          <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Creating account..." : "Create Account"}
           </Button>
         </form>

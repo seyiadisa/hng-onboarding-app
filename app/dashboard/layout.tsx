@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react"     // ← Fixed: removed wrong curly braces
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar"
@@ -12,7 +12,7 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const { user, isLoading } = useAuth()
+  const { user, loading } = useAuth()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -20,12 +20,12 @@ export default function DashboardLayout({
   }, [])
 
   useEffect(() => {
-    if (mounted && !isLoading && !user) {
+    if (mounted && !loading && !user) {
       router.push("/auth/login")
     }
-  }, [mounted, isLoading, user, router])
+  }, [mounted, loading, user, router])
 
-  if (!mounted || isLoading || !user) {
+  if (!mounted || loading || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
