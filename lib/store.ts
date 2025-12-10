@@ -1,137 +1,232 @@
+// lib/store.ts
 import { create } from "zustand"
-import type { Tour } from "./types"
 import { supabase } from "./supabase"
+import { toast } from "sonner" // Ensure this is imported
+import type { Tour } from "./types"
+
+type CreateTourInput = {
+  title: string
+  description: string
+  status: "draft" | "active"
+  steps: Array<{
+    title: string
+    description: string
+    targetSelector: string
+    position: "top" | "right" | "bottom" | "left"
+    order: number
+  }>
+}
 
 interface ToursStore {
   tours: Tour[]
   loading: boolean
   error: string | null
   fetchTours: () => Promise<void>
-  addTour: (tour: Omit<Tour, 'id' | 'createdDate'>) => Promise<void>
+  addTour: (tour: CreateTourInput) => Promise<void>
   updateTour: (tour: Tour) => Promise<void>
   deleteTour: (id: string) => Promise<void>
   getTourById: (id: string) => Tour | undefined
 }
 
-// Initialize with empty array
-const initialTours: Tour[] = []
-
 export const useToursStore = create<ToursStore>((set, get) => ({
-  tours: initialTours,
+  tours: [],
   loading: false,
   error: null,
 
   fetchTours: async () => {
     set({ loading: true, error: null })
     try {
+      const { data: { session }, error: authError } = await supabase.auth.getSession()
+      if (authError) throw authError
+      if (!session?.user) {
+        set({ loading: false })
+        return
+      }
+
       const { data, error } = await supabase
-        .from('tours')
-        .select('*')
-        .order('createdDate', { ascending: false })
+        .from("tours")
+        .select("*, steps(*)")
+        .eq("user_id", session.user.id)
+        .order("created_date", { ascending: false })
 
       if (error) throw error
 
-      const toursWithSteps = await Promise.all(
-        (data || []).map(async (tour: any) => {
-          const { data: stepsData } = await supabase
-            .from('steps')
-            .select('*')
-            .eq('tourId', tour.id)
-            .order('order')
+      // Mapping logic included (from previous fix)
+      const tours = (data || []).map((tour: any) => ({
+        ...tour,
+        createdDate: tour.created_date,
+        steps: (tour.steps || [])
+          .sort((a: any, b: any) => a.step_order - b.step_order)
+          .map((step: any) => ({
+            id: step.id,
+            tourId: step.tour_id,
+            title: step.title,
+            description: step.description,
+            targetSelector: step.target_selector, 
+            position: step.position,
+            order: step.step_order,
+          })),
+      }))
 
-          return {
-            ...tour,
-            steps: stepsData || [],
-          }
-        })
-      )
-
-      set({ tours: toursWithSteps as Tour[], loading: false })
-    } catch (err) {
-      set({ error: (err as Error).message, loading: false })
+      set({ tours: tours as Tour[], loading: false })
+    } catch (err: any) {
+      console.error("Fetch tours error:", err)
+      toast.error("Failed to load tours")
+      set({ loading: false })
     }
   },
 
   addTour: async (tourData) => {
-    set({ loading: true, error: null })
-    try {
-      const newTour = {
-        ...tourData,
-        createdDate: new Date().toISOString(),
-        status: 'draft' as const,
-      }
+    // We don't necessarily need set({loading: true}) here because toast handles the UI state,
+    // but we keep it if you have disabled buttons in your UI relying on it.
+    set({ loading: true })
 
-      const { data: tour, error: tourError } = await supabase
-        .from('tours')
-        .insert([newTour])
+    const createPromise = async () => {
+      const { data: { session }, error: authError } = await supabase.auth.getSession()
+      if (authError) throw authError
+      if (!session?.user) throw new Error("Not authenticated")
+
+      // 1. Create Tour
+      const { data: newTour, error: tourError } = await supabase
+        .from("tours")
+        .insert({
+          user_id: session.user.id,
+          title: tourData.title,
+          description: tourData.description,
+          status: tourData.status,
+        })
         .select()
         .single()
 
       if (tourError) throw tourError
 
-      if (tourData.steps && tourData.steps.length > 0) {
-        const stepsWithTourId = tourData.steps.map((step: any) => ({ ...step, tourId: tour.id }))
-        const { error: stepsError } = await supabase
-          .from('steps')
-          .insert(stepsWithTourId)
+      // 2. Create Steps
+      const stepsToInsert = tourData.steps.map((step) => ({
+        tour_id: newTour.id,
+        title: step.title,
+        description: step.description,
+        target_selector: step.targetSelector,
+        position: step.position,
+        step_order: step.order,
+      }))
 
-        if (stepsError) throw stepsError
+      const { error: stepsError } = await supabase.from("steps").insert(stepsToInsert)
+      if (stepsError) throw stepsError
+
+      // 3. Update Local State
+      const fullTour: Tour = {
+        ...newTour,
+        createdDate: newTour.created_date || new Date().toISOString(),
+        steps: tourData.steps.map((s, i) => ({
+          id: `temp-${Date.now()}-${i}`,
+          tourId: newTour.id,
+          title: s.title,
+          description: s.description,
+          targetSelector: s.targetSelector,
+          position: s.position,
+          order: s.order,
+        })),
       }
 
       set((state) => ({
-        tours: [tour as Tour, ...state.tours],
-        loading: false,
+        tours: [fullTour, ...state.tours],
       }))
-    } catch (err) {
-      set({ error: (err as Error).message, loading: false })
+    }
+
+    // Wrap the promise with Toast
+    try {
+      await toast.promise(createPromise(), {
+        loading: "Creating your tour...",
+        success: "Tour created successfully!",
+        error: (err) => `Failed: ${err.message}`,
+      })
+    } finally {
+      set({ loading: false })
     }
   },
 
-  updateTour: async (tour) => {
-    set({ loading: true, error: null })
-    try {
+  updateTour: async (updatedTour) => {
+    set({ loading: true })
+
+    const updatePromise = async () => {
+      const { data: { session }, error: authError } = await supabase.auth.getSession()
+      if (authError) throw authError
+      if (!session?.user) throw new Error("Not authenticated")
+
+      // 1. Update Tour Details
       const { error: tourError } = await supabase
-        .from('tours')
-        .update(tour)
-        .eq('id', tour.id)
+        .from("tours")
+        .update({
+          title: updatedTour.title,
+          description: updatedTour.description,
+          status: updatedTour.status,
+        })
+        .eq("id", updatedTour.id)
 
       if (tourError) throw tourError
 
-      const { error: stepsError } = await supabase
-        .from('steps')
-        .upsert(tour.steps)
+      // 2. Delete old steps
+      await supabase.from("steps").delete().eq("tour_id", updatedTour.id)
 
+      // 3. Insert new steps (using mapped data)
+      const stepsToInsert = updatedTour.steps.map((step, i) => ({
+        tour_id: updatedTour.id,
+        title: step.title,
+        description: step.description,
+        target_selector: step.targetSelector, 
+        position: step.position,
+        step_order: i + 1,
+      }))
+
+      const { error: stepsError } = await supabase.from("steps").insert(stepsToInsert)
       if (stepsError) throw stepsError
 
+      // 4. Update Local State
       set((state) => ({
-        tours: state.tours.map((t) => (t.id === tour.id ? tour : t)),
-        loading: false,
+        tours: state.tours.map((t) => (t.id === updatedTour.id ? updatedTour : t)),
       }))
-    } catch (err) {
-      set({ error: (err as Error).message, loading: false })
+    }
+
+    try {
+      await toast.promise(updatePromise(), {
+        loading: "Saving changes...",
+        success: "Tour updated successfully!",
+        error: (err) => `Failed: ${err.message}`,
+      })
+    } finally {
+      set({ loading: false })
     }
   },
 
   deleteTour: async (id) => {
-    set({ loading: true, error: null })
+    // Optimistically update UI first for instant feel on delete
+    const previousTours = get().tours
+    set((state) => ({
+      tours: state.tours.filter((t) => t.id !== id),
+      loading: true // keep loading true during background request
+    }))
+
+    const deletePromise = async () => {
+      const { error } = await supabase.from("tours").delete().eq("id", id)
+      if (error) {
+        // Revert on failure
+        set({ tours: previousTours })
+        throw error
+      }
+    }
+
     try {
-      // Delete steps first
-      await supabase.from('steps').delete().eq('tourId', id)
-
-      const { error } = await supabase.from('tours').delete().eq('id', id)
-
-      if (error) throw error
-
-      set((state) => ({
-        tours: state.tours.filter((t) => t.id !== id),
-        loading: false,
-      }))
-    } catch (err) {
-      set({ error: (err as Error).message, loading: false })
+      await toast.promise(deletePromise(), {
+        loading: "Deleting tour...",
+        success: "Tour deleted",
+        error: (err) => {
+          return `Failed to delete: ${err.message}`
+        }
+      })
+    } finally {
+      set({ loading: false })
     }
   },
 
-  getTourById: (id) => {
-    return get().tours.find((tour) => tour.id === id)
-  },
+  getTourById: (id) => get().tours.find((t) => t.id === id),
 }))

@@ -8,7 +8,7 @@ import type { User as AppUser } from "./types"
 interface AuthContextType {
   user: AppUser | null
   session: Session | null
-  loading: boolean
+  isLoading: boolean
   signUp: (email: string, password: string, name: string) => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         session,
-        loading,
+        isLoading: loading,
         signUp,
         signIn,
         signOut,
