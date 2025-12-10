@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 TourWidget — Product Tours & Onboarding Made Simple
 
-## Getting Started
+**TourWidget** is the easiest way to create beautiful, interactive product tours and onboarding experiences for your web application. Build tours visually in our dashboard and embed them anywhere with a single line of code.
 
-First, run the development server:
+**🔗 Live App:** [https://tourwidget.vercel.app](https://tourwidget.vercel.app)  
+**🧩 Widget Script:** `https://tourwidget-onboarding.vercel.app/tour.js`
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✨ Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 🛠️ Tour Builder
+- **No-Code Editor:** Create and edit tours directly from a user-friendly dashboard.
+- **Element Targeting:** Highlight any element using CSS selectors (ids, classes) or `data-tour` attributes.
+- **Smart Positioning:** Tooltips automatically position themselves (Top, Bottom, Left, Right) for the best fit.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 📊 Analytics & Insights (New!)
+- **Real-Time Data:** Track how users interact with your tours instantly.
+- **Engagement Charts:** Visualize weekly trends, completion rates, and drop-off points.
+- **User Metrics:** Monitor total tours started, completed, and skipped.
 
-## Learn More
+### ⚡ Technical Highlights
+- **Universal Embed:** Works on any website (React, Vue, plain HTML) with a single `<script>` tag.
+- **Responsive Dashboard:** Manage your tours on the go from mobile, tablet, or desktop.
+- **Instant Sync:** Updates made in the dashboard reflect immediately on your live site.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🛠️ Tech Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Framework:** Next.js 14 (App Router)
+- **Styling:** Tailwind CSS & Shadcn/UI
+- **Database & Auth:** Supabase
+- **State Management:** Zustand
+- **Visualization:** Recharts
+- **Icons:** Lucide React
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🚀 Getting Started
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 1. Create a Tour
+Log in to the [Dashboard](https://tourwidget.vercel.app), create a new tour, and define your steps by pointing to elements on your website (e.g., `#navbar`, `.signup-btn`).
+
+### 2. Embed the Widget
+Copy the generated snippet and paste it into the `<head>` or `<body>` of your website.
+
+```html
+<script src="[https://tourwidget-onboarding.vercel.app/tour.js](https://tourwidget-onboarding.vercel.app/tour.js)"></script>
+<script>
+  TourWidget.init({
+    tourId: "YOUR_TOUR_ID_HERE"
+  });
+</script>
