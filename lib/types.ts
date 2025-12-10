@@ -19,8 +19,6 @@ export interface Step {
   title: string
   description: string
   targetSelector: string
-  position: "top" | "right" | "bottom" | "left"
-  order: number
 }
 
 export interface AnalyticsEvent {

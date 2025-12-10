@@ -28,9 +28,9 @@ export default function TourDetailsPage() {
     )
   }
 
-  const embedCode = `<script src="https://tourwidget.com/widget.js"></script>
+  const embedCode = `<script src="https://tourwidget-onboarding.vercel.app/tour.js"></script>
 <script>
-  initTour({
+  TourWidget.init({
     tourId: "${tour.id}",
   });
 </script>`
@@ -86,7 +86,6 @@ export default function TourDetailsPage() {
                     <p className="text-sm text-gray-600">{step.description}</p>
                     <div className="flex gap-4 mt-2 text-xs text-gray-500">
                       <span className="bg-gray-100 px-2 py-0.5 rounded">Selector: {step.targetSelector}</span>
-                      <span className="bg-gray-100 px-2 py-0.5 rounded">Position: {step.position}</span>
                     </div>
                   </div>
                   <div className="flex gap-2">

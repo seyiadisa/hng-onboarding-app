@@ -12,8 +12,6 @@ type CreateTourInput = {
     title: string
     description: string
     targetSelector: string
-    position: "top" | "right" | "bottom" | "left"
-    order: number
   }>
 }
 
@@ -106,8 +104,6 @@ export const useToursStore = create<ToursStore>((set, get) => ({
         title: step.title,
         description: step.description,
         target_selector: step.targetSelector,
-        position: step.position,
-        step_order: step.order,
       }))
 
       const { error: stepsError } = await supabase.from("steps").insert(stepsToInsert)
@@ -123,8 +119,6 @@ export const useToursStore = create<ToursStore>((set, get) => ({
           title: s.title,
           description: s.description,
           targetSelector: s.targetSelector,
-          position: s.position,
-          order: s.order,
         })),
       }
 
@@ -174,8 +168,6 @@ export const useToursStore = create<ToursStore>((set, get) => ({
         title: step.title,
         description: step.description,
         target_selector: step.targetSelector, 
-        position: step.position,
-        step_order: i + 1,
       }))
 
       const { error: stepsError } = await supabase.from("steps").insert(stepsToInsert)
