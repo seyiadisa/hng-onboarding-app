@@ -58,7 +58,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/5 px-4">
       <Toaster />
       <Card className="w-full max-w-md p-8">
-        <h1 className="text-3xl font-bold text-center mb-2">Create Account</h1>
+        <h1 className="text-3xl font-bold text-center ">Create Account <br /> <span className="text-[15px] font-light">TourWidget Account</span></h1>
         <p className="text-center text-gray-600 mb-8">Start your free trial today</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">

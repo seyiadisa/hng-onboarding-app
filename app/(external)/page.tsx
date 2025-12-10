@@ -71,9 +71,12 @@ export default function LandingPage() {
                   Start Free Trial
                 </Button>
               </Link>
+              <Link href="/demo">
+
               <Button variant="secondary" size="lg">
                 Watch Demo
               </Button>
+              </Link>
             </motion.div>
 
           </div>
@@ -215,6 +218,7 @@ export default function LandingPage() {
                 Start Free Trial
               </Button>
             </Link>
+            <Link href="/demo">
             <Button 
               size="lg" 
               variant="outline" 
@@ -222,6 +226,7 @@ export default function LandingPage() {
             >
               View Live Demo
             </Button>
+            </Link>
           </div>
         </div>
       </motion.section>

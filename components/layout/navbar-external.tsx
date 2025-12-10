@@ -23,9 +23,10 @@ import {
   DialogFooter,
   DialogTitle,
 } from "@/components/ui/dialog"
+import Image from "next/image"
 
 export function NavbarExternal() {
-  const { user, loading, signOut } = useAuth()
+  const { user, isLoading, signOut } = useAuth() // <-- use isLoading
   const router = useRouter()
 
   const [open, setOpen] = useState(false)
@@ -34,14 +35,14 @@ export function NavbarExternal() {
   const [logoutModalOpen, setLogoutModalOpen] = useState(false)
 
   const confirmLogout = async () => {
-  // Close modals immediately
-  setLogoutModalOpen(false)
-  setOpen(false)
-  setMobileOpen(false)
+    // Close modals immediately
+    setLogoutModalOpen(false)
+    setOpen(false)
+    setMobileOpen(false)
 
-  router.replace("/auth/login")
-  signOut()
-}
+    router.replace("/auth/login")
+    signOut()
+  }
 
   const avatarLetter =
     user?.name
@@ -75,8 +76,15 @@ export function NavbarExternal() {
       <nav className="sticky top-0 z-50 bg-white border-b border-border">
         <div className="container-responsive flex items-center justify-between h-16">
 
-          <Link href="/" className="text-2xl font-bold gradient-text">
-            TourWidget
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/widgetlogo.jpeg"
+              alt="Widget Logo"
+              width={30}
+              height={30}
+              className="rounded-sm object-contain"
+            />
+            <h2 className="text-xl font-bold gradient-text">TourWidget</h2>
           </Link>
 
           {/* Desktop Links */}
@@ -105,7 +113,7 @@ export function NavbarExternal() {
 
           {/* Desktop Right Side */}
           <div className="hidden md:flex items-center gap-2">
-            {loading ? (
+            {isLoading ? (
               <div className="h-9 w-24 skeleton rounded-lg" />
             ) : user ? (
               <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -202,7 +210,7 @@ export function NavbarExternal() {
             </Link>
 
             <div className="pt-2 border-t border-border">
-              {loading ? (
+              {isLoading ? (
                 <div className="h-9 w-24 skeleton rounded-lg" />
               ) : user ? (
                 <div className="space-y-3">
