@@ -22,10 +22,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Load session on mount
     const loadSession = async () => {
       const { data } = await supabase.auth.getSession()
       setSession(data.session || null)
-      setLoading(false)
+      setLoading(false) // ← important: only mark loading false after session is fetched
     }
 
     loadSession()

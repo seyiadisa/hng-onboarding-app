@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
-import { useAuth } from "@/lib/auth-context" // Fixed import usage below
+import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import { Avatar } from "@/components/ui/avatar"
 import {
@@ -16,17 +16,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import Image from "next/image"
 
 export function DashboardSidebar() {
   const router = useRouter()
   const pathname = usePathname()
-  // FIX: Destructure 'signOut' instead of 'logout' to match AuthContextType
   const { user, signOut } = useAuth()
 
   const handleLogout = async () => {
     try {
-      await signOut() // Use the function from context
-      router.push("/auth/login") // Redirect to login page
+      await signOut()
+      router.push("/auth/login")
     } catch (error) {
       console.error("Error signing out:", error)
     }
@@ -41,7 +41,16 @@ export function DashboardSidebar() {
   return (
     <aside className="w-64 bg-white border-r border-border flex flex-col min-h-screen">
       <div className="p-6 border-b border-border">
-        <h2 className="text-xl font-bold gradient-text">TourWidget</h2>
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/widgetlogo.jpeg"
+            alt="Widget Logo"
+            width={30}
+            height={30}
+            className="rounded-sm object-contain"
+          />
+          <h2 className="text-xl font-bold gradient-text">TourWidget</h2>
+        </Link>
         <p className="text-xs text-gray-500 mt-1">Dashboard</p>
       </div>
 
@@ -90,9 +99,10 @@ export function DashboardSidebar() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              {/* handleLogout runs only on confirmation */}
-              <AlertDialogAction onClick={handleLogout}
-              className="bg-destructive text-white hover:bg-destructive/90">
+              <AlertDialogAction
+                onClick={handleLogout}
+                className="bg-destructive text-white hover:bg-destructive/90"
+              >
                 Yes, Logout
               </AlertDialogAction>
             </AlertDialogFooter>

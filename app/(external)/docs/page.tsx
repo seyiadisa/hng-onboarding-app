@@ -1,6 +1,6 @@
 // app/(external)/docs/page.tsx
 "use client"
-
+import Link from "next/link"
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { NavbarExternal } from "@/components/layout/navbar-external"
@@ -350,19 +350,12 @@ window.TourWidget.startTour("tour_dashboard_id_XYZ");`
             </p>
 
             <div className="flex items-center justify-center gap-4">
-              <a
-                href="/docs#installation"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold shadow-md hover:opacity-95 transition"
-              >
-                View Install
-              </a>
-
-              <a
-                href="/demo"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-muted hover:bg-white/5 transition"
-              >
-                Open Demo
-              </a>
+              <Link href="/dasboard"   className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold shadow-md hover:opacity-95 transition">
+              View Install
+              </Link>
+              <Link href="/demo"    className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border  hover:bg-white/5 transition border-gray-500">
+               Open Demo
+              </Link>
             </div>
           </div>
         </div>
