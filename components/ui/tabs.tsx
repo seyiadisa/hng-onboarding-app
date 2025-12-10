@@ -28,9 +28,7 @@ function Tabs({
             ))}
           </TabsList>
           {tabs.map((tab) => (
-            <Tabs key={tab.value} value={tab.value}>
-              <TabsContent>{tab.content}</TabsContent>
-            </Tabs>
+            <TabsContent key={tab.value} value={tab.value}>{tab.content}</TabsContent>
           ))}
         </>
       )}

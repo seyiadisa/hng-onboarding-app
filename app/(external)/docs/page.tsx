@@ -14,10 +14,8 @@ const SECTION_SPACING_DEFAULT = "py-16 md:py-24"
 const CONTAINER_RESPONSIVE_CLASS = "container mx-auto px-4 sm:px-6 lg:px-8"
 
 export default function DocsPage() {
-  // FAQ state
   const [openFaq, setOpenFaq] = useState<number | null>(0)
 
-  // copied state per snippet (keyed)
   const [copiedMap, setCopiedMap] = useState<Record<string, boolean>>({})
 
   const setCopiedFor = (key: string) => {
@@ -25,27 +23,16 @@ export default function DocsPage() {
     setTimeout(() => setCopiedMap((s) => ({ ...s, [key]: false })), 1400)
   }
 
-  const initializationCode = `// 1. Initialize the TourWidget Global Object
-window.TourWidget.init({
-  apiKey: "YOUR_PROJECT_API_KEY_HERE",
-  userId: "user-123",
-});
+  const initializationCode = `TourWidget.init({
+    tourId: 'your-tour-id',
+      showTourButton?: false, // optional
+      backgroundColor?: white, // optional
+      textColor?: black, // optional
+      primaryColor?: blue // optional
+  })`
 
-// 2. Start a specific Tour
-window.TourWidget.startTour("tour_dashboard_id_XYZ");`
+  const scriptTagCode = `<script src="https://tourwidget-onboarding.vercel.app/tour.js"></script>`
 
-  const scriptTagCode = `<script src="https://tourwidget.com/embed/widget.js" async></script>`
-
-  const programmaticCode = `window.TourWidget.startTour({
-  id: "programmatic_tour_1",
-  steps: [
-    { id: "s1", title: "Welcome", description: "Start here", target: "#btn-start" },
-    { id: "s2", title: "Navigation", description: "Find the menu", target: "#nav-menu" },
-    { id: "s3", title: "Profile", description: "Edit your details", target: "#user-profile" },
-    { id: "s4", title: "Settings", description: "Adjust preferences", target: "#settings-cog" },
-    { id: "s5", title: "Finish", description: "Tour complete!", target: "body" }
-  ]
-});`
 
   const copyToClipboard = async (text: string, key: string) => {
     try {
@@ -147,49 +134,6 @@ window.TourWidget.startTour("tour_dashboard_id_XYZ");`
         </div>
       ),
     },
-    {
-      label: "Advanced Config",
-      value: "configuration",
-      icon: <BookOpen className="w-5 h-5" />,
-      content: (
-        <div className="space-y-6">
-          <p className="text-lg text-muted-foreground">
-            Programmatic configuration allows advanced tours to be defined in JSON and started via API.
-          </p>
-
-          <div className="relative bg-gray-900 text-white p-6 rounded-xl shadow-lg font-mono text-sm">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <h4 className="text-primary-foreground font-semibold mb-3">Sample 5-Step Tour Configuration</h4>
-                <pre className="overflow-x-auto whitespace-pre-wrap">
-                  <code>{programmaticCode}</code>
-                </pre>
-              </div>
-
-              <button
-                aria-label="Copy programmatic sample"
-                onClick={() => copyToClipboard(programmaticCode, "programmatic")}
-                className="ml-4 hidden md:inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition"
-              >
-                {copiedMap["programmatic"] ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                <span className="text-sm">{copiedMap["programmatic"] ? "Copied" : "Copy"}</span>
-              </button>
-            </div>
-
-            <div className="mt-4 md:hidden flex justify-end">
-              <button
-                aria-label="Copy programmatic sample"
-                onClick={() => copyToClipboard(programmaticCode, "programmatic")}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition"
-              >
-                {copiedMap["programmatic"] ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                <span className="text-sm">{copiedMap["programmatic"] ? "Copied" : "Copy"}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      ),
-    },
   ]
 
   const faqs = [
@@ -261,7 +205,7 @@ window.TourWidget.startTour("tour_dashboard_id_XYZ");`
             <Card className="p-6 border-l-4 border-primary hover:shadow-xl transition-shadow">
               <Code className="w-8 h-8 text-primary mb-3" />
               <h3 className="font-bold text-lg mb-2">📦 Script Integration</h3>
-              <p className="text-sm text-muted-foreground">Just copy and paste one async script tag.</p>
+              <p className="text-sm text-muted-foreground">Just copy and paste one script tag.</p>
             </Card>
 
             <Card className="p-6 border-l-4 border-accent hover:shadow-xl transition-shadow">

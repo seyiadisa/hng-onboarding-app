@@ -30,6 +30,7 @@ export default function CreateTourPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
     if (!title.trim()) newErrors.title = "Tour title is required"
+    if (!description.trim()) newErrors.description = "Tour description is required"
     if (steps.length < 5) newErrors.steps = "Minimum 5 steps required"
 
     steps.forEach((step, idx) => {
