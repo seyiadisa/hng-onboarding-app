@@ -91,8 +91,9 @@ export function DashboardSidebar() {
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               {/* handleLogout runs only on confirmation */}
-              <AlertDialogAction onClick={handleLogout}>
-                Confirm Logout
+              <AlertDialogAction onClick={handleLogout}
+              className="bg-destructive text-white hover:bg-destructive/90">
+                Yes, Logout
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -13,18 +13,8 @@ export function Footer() {
             <h4 className="font-semibold mb-4">Product</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="#" className="opacity-80 hover:opacity-100">
+                <Link href="/features" className="opacity-80 hover:opacity-100">
                   Features
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="opacity-80 hover:opacity-100">
-                  Pricing
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="opacity-80 hover:opacity-100">
-                  Security
                 </Link>
               </li>
             </ul>
@@ -43,27 +33,13 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="#" className="opacity-80 hover:opacity-100">
+                <Link href="/contact" className="opacity-80 hover:opacity-100">
                   Contact
                 </Link>
               </li>
             </ul>
           </div>
-          <div>
-            <h4 className="font-semibold mb-4">Legal</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="#" className="opacity-80 hover:opacity-100">
-                  Privacy
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="opacity-80 hover:opacity-100">
-                  Terms
-                </Link>
-              </li>
-            </ul>
-          </div>
+         
         </div>
         <div className="border-t border-white/20 pt-8 text-sm text-center opacity-80">
           © 2025 TourWidget. All rights reserved.

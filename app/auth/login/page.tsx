@@ -1,4 +1,3 @@
-// app/auth/login/page.tsx
 "use client"
 
 import { useState } from "react"
@@ -7,56 +6,84 @@ import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 import { Card } from "@/components/ui/card"
+import { toast } from "sonner"
+import { Toaster } from "@/components/ui/sonner" // import your Sonner component
 
 export default function LoginPage() {
   const router = useRouter()
-  const { signIn } = useAuth()  // ← was login, now signIn
+  const { signIn } = useAuth()
+
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState({
+    email: "",
+    password: "",
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
     setLoading(true)
+    setFieldErrors({ email: "", password: "" })
+
+    const errors: any = {}
+    if (!email.trim()) errors.email = "Email is required"
+    if (!password.trim()) errors.password = "Password is required"
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      setLoading(false)
+      return
+    }
 
     try {
-      await signIn(email, password)
-      router.push("/dashboard")
-    } catch (err: any) {
-      setError(err.message || "Invalid email or password")
-    } finally {
-      setLoading(false)
-    }
+  await signIn(email, password)
+  toast.success("Signed in successfully!")
+
+ 
+  setTimeout(() => {
+    router.push("/dashboard")
+  }, 2000)
+} catch (err: any) {
+  toast.error(err.message || "Invalid email or password")
+}setLoading(false)
+
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/5 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-primary/5 to-accent/5 px-4">
+      <Toaster />
       <Card className="w-full max-w-md p-8">
         <h1 className="text-3xl font-bold text-center mb-2">Welcome Back</h1>
-        <p className="text-center text-center text-gray-600 mb-8">Sign in to your account</p>
+        <p className="text-center text-gray-600 mb-8">Sign in to your account</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            label="Email"
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <Input
-            label="Password"
-            type="password"
-            placeholder="Your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="space-y-1">
+            <Input
+              label="Email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            {fieldErrors.email && (
+              <p className="text-red-500 text-sm">{fieldErrors.email}</p>
+            )}
+          </div>
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          <div className="space-y-1">
+            <PasswordInput
+              label="Password"
+              placeholder="Your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            {fieldErrors.password && (
+              <p className="text-red-500 text-sm">{fieldErrors.password}</p>
+            )}
+          </div>
 
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Signing in..." : "Sign In"}
@@ -65,7 +92,7 @@ export default function LoginPage() {
 
         <p className="text-center text-sm text-gray-600 mt-6">
           Don't have an account?{" "}
-          <Link href="/auth/register" className="text-accent font-semibold hover:underline">
+          <Link href="/auth/register" className=" font-semibold hover:underline text-gray-600">
             Sign up
           </Link>
         </p>
