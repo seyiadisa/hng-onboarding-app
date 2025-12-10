@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link" // Import Link
 import { useAuth } from "@/lib/auth-context"
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar"
 import { Toaster } from "@/components/ui/sonner"
@@ -65,7 +66,8 @@ export default function DashboardLayout({
       <div className="flex-1 flex flex-col w-full min-w-0">
         {/* Mobile Header */}
         <div className="lg:hidden p-4 border-b bg-white flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-2">
+            {/* UPDATED: Wrapped in Link and added gradient-text class */}
+            <Link href="/" className="flex items-center gap-2">
                 <Image
                     src="/widgetlogo.jpeg"
                     alt="Widget Logo"
@@ -73,8 +75,9 @@ export default function DashboardLayout({
                     height={24}
                     className="rounded-sm object-contain"
                 />
-                <span className="font-bold text-lg">TourWidget</span>
-            </div>
+                <span className="font-bold text-lg gradient-text">TourWidget</span>
+            </Link>
+            
             <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
                 <Menu className="h-6 w-6" />
             </Button>
