@@ -294,7 +294,7 @@ export default function DocsPage() {
             </p>
 
             <div className="flex items-center justify-center gap-4">
-              <Link href="/dasboard"   className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold shadow-md hover:opacity-95 transition">
+              <Link href="/dashboard"   className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold shadow-md hover:opacity-95 transition">
               View Install
               </Link>
               <Link href="/demo"    className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border  hover:bg-white/5 transition border-gray-500">
