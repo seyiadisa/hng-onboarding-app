@@ -6,6 +6,7 @@ import { NavbarExternal } from "@/components/layout/navbar-external"
 import { Footer } from "@/components/layout/footer"
 import { Card } from "@/components/ui/card"
 import { Rocket, Users, Target, Zap } from "lucide-react"
+import Link from "next/link"
 
 const SECTION_SPACING_DEFAULT = "py-16 md:py-24"
 const CONTAINER_RESPONSIVE_CLASS = "container mx-auto px-4 sm:px-6 lg:px-8"
@@ -188,12 +189,12 @@ export default function AboutPage() {
               Join the teams already leveraging TourWidget to accelerate adoption.
             </p>
 
-            <a
-              href="/sign-up"
+            <Link
+              href="/auth/register"
               className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full shadow-lg text-primary bg-primary-foreground hover:bg-white transition duration-300 transform hover:scale-105"
             >
               <Zap className="w-5 h-5 mr-2" /> Start Your Free Trial
-            </a>
+            </Link>
           </motion.div>
         </div>
       </motion.section>
