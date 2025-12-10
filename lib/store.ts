@@ -1,7 +1,7 @@
 // lib/store.ts
 import { create } from "zustand"
 import { supabase } from "./supabase"
-import { toast } from "sonner" // Ensure this is imported
+import { toast } from "sonner" 
 import type { Tour } from "./types"
 
 type CreateTourInput = {
@@ -41,6 +41,8 @@ export const useToursStore = create<ToursStore>((set, get) => ({
         return
       }
 
+      // 1. Select tours and steps
+      // Note: Since 'order' column is deleted, we rely on default DB sort or ID
       const { data, error } = await supabase
         .from("tours")
         .select("*, steps(*)")
@@ -49,20 +51,22 @@ export const useToursStore = create<ToursStore>((set, get) => ({
 
       if (error) throw error
 
-      // Mapping logic included (from previous fix)
+      // 2. Map response to App Types
       const tours = (data || []).map((tour: any) => ({
         ...tour,
         createdDate: tour.created_date,
+        // Remove .sort by step_order since it doesn't exist
         steps: (tour.steps || [])
-          .sort((a: any, b: any) => a.step_order - b.step_order)
+          // Optional: Sort by ID or created_at if available to keep them stable
+          .sort((a: any, b: any) => (a.created_at > b.created_at ? 1 : -1)) 
           .map((step: any) => ({
             id: step.id,
             tourId: step.tour_id,
             title: step.title,
             description: step.description,
-            targetSelector: step.target_selector, 
-            position: step.position,
-            order: step.step_order,
+            // Map DB snake_case to App camelCase
+            targetSelector: step.target_selector || "", 
+            // Removed position and order properties entirely
           })),
       }))
 
@@ -75,8 +79,6 @@ export const useToursStore = create<ToursStore>((set, get) => ({
   },
 
   addTour: async (tourData) => {
-    // We don't necessarily need set({loading: true}) here because toast handles the UI state,
-    // but we keep it if you have disabled buttons in your UI relying on it.
     set({ loading: true })
 
     const createPromise = async () => {
@@ -99,35 +101,29 @@ export const useToursStore = create<ToursStore>((set, get) => ({
       if (tourError) throw tourError
 
       // 2. Create Steps
-      const stepsToInsert = tourData.steps.map((step) => ({
-        tour_id: newTour.id,
-        title: step.title,
-        description: step.description,
-        target_selector: step.targetSelector,
-      }))
+      // IMPORTANT: Ensure no 'undefined' values are sent
+      if (tourData.steps && tourData.steps.length > 0) {
+        const stepsToInsert = tourData.steps.map((step) => ({
+          tour_id: newTour.id,
+          title: step.title || "Untitled Step", // Fallback if empty
+          description: step.description || "",
+          target_selector: step.targetSelector || "body", // Ensure not null if DB requires it
+        }))
 
-      const { error: stepsError } = await supabase.from("steps").insert(stepsToInsert)
-      if (stepsError) throw stepsError
-
-      // 3. Update Local State
-      const fullTour: Tour = {
-        ...newTour,
-        createdDate: newTour.created_date || new Date().toISOString(),
-        steps: tourData.steps.map((s, i) => ({
-          id: `temp-${Date.now()}-${i}`,
-          tourId: newTour.id,
-          title: s.title,
-          description: s.description,
-          targetSelector: s.targetSelector,
-        })),
+        const { error: stepsError } = await supabase.from("steps").insert(stepsToInsert)
+        
+        if (stepsError) {
+            // If steps fail, we might want to clean up the empty tour
+            // await supabase.from("tours").delete().eq("id", newTour.id) 
+            throw stepsError
+        }
       }
 
-      set((state) => ({
-        tours: [fullTour, ...state.tours],
-      }))
+      // 3. Update Local State (Optimistic or Refresh)
+      // It's safer to just fetch fresh data to ensure IDs are correct
+      await get().fetchTours()
     }
 
-    // Wrap the promise with Toast
     try {
       await toast.promise(createPromise(), {
         loading: "Creating your tour...",
@@ -159,24 +155,24 @@ export const useToursStore = create<ToursStore>((set, get) => ({
 
       if (tourError) throw tourError
 
-      // 2. Delete old steps
+      // 2. Delete old steps (Simple strategy: delete all, re-insert)
       await supabase.from("steps").delete().eq("tour_id", updatedTour.id)
 
-      // 3. Insert new steps (using mapped data)
-      const stepsToInsert = updatedTour.steps.map((step, i) => ({
-        tour_id: updatedTour.id,
-        title: step.title,
-        description: step.description,
-        target_selector: step.targetSelector, 
-      }))
+      // 3. Insert new steps
+      if (updatedTour.steps && updatedTour.steps.length > 0) {
+        const stepsToInsert = updatedTour.steps.map((step) => ({
+          tour_id: updatedTour.id,
+          title: step.title,
+          description: step.description,
+          target_selector: step.targetSelector,
+        }))
 
-      const { error: stepsError } = await supabase.from("steps").insert(stepsToInsert)
-      if (stepsError) throw stepsError
+        const { error: stepsError } = await supabase.from("steps").insert(stepsToInsert)
+        if (stepsError) throw stepsError
+      }
 
       // 4. Update Local State
-      set((state) => ({
-        tours: state.tours.map((t) => (t.id === updatedTour.id ? updatedTour : t)),
-      }))
+      await get().fetchTours()
     }
 
     try {
@@ -191,17 +187,15 @@ export const useToursStore = create<ToursStore>((set, get) => ({
   },
 
   deleteTour: async (id) => {
-    // Optimistically update UI first for instant feel on delete
     const previousTours = get().tours
     set((state) => ({
       tours: state.tours.filter((t) => t.id !== id),
-      loading: true // keep loading true during background request
+      loading: true 
     }))
 
     const deletePromise = async () => {
       const { error } = await supabase.from("tours").delete().eq("id", id)
       if (error) {
-        // Revert on failure
         set({ tours: previousTours })
         throw error
       }
@@ -211,9 +205,7 @@ export const useToursStore = create<ToursStore>((set, get) => ({
       await toast.promise(deletePromise(), {
         loading: "Deleting tour...",
         success: "Tour deleted",
-        error: (err) => {
-          return `Failed to delete: ${err.message}`
-        }
+        error: (err) => `Failed: ${err.message}`,
       })
     } finally {
       set({ loading: false })

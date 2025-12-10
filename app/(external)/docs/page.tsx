@@ -222,7 +222,7 @@ export default function DocsPage() {
           </div>
 
           <Card className="p-4 md:p-8 shadow-2xl">
-            <Tabs tabs={tabs} defaultValue="installation" />
+            <Tabs tabs={tabs} defaultValue="installation"/>
           </Card>
         </div>
       </motion.section>
