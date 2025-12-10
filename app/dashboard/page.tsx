@@ -26,9 +26,9 @@ export default function ToursPage() {
   }
 
   const handleShowEmbed = (tourId: string) => {
-    const embedCode = `<script src="https://tourwidget.com/widget.js"></script>
+    const embedCode = `<script src="https://tourwidget-onboarding.vercel.app/tour.js"></script>
 <script>
-  initTour({
+  TourWidget.init({
     tourId: "${tourId}",
   });
 </script>`

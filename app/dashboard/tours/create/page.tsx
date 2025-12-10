@@ -22,8 +22,6 @@ export default function CreateTourPage() {
       title: "",
       description: "",
       targetSelector: "",
-      position: "bottom" as const,
-      order: i + 1,
     }))
   )
 
@@ -32,12 +30,11 @@ export default function CreateTourPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
     if (!title.trim()) newErrors.title = "Tour title is required"
+    if (!description.trim()) newErrors.description = "Tour description is required"
     if (steps.length < 5) newErrors.steps = "Minimum 5 steps required"
 
     steps.forEach((step, idx) => {
       if (!step.title.trim()) newErrors[`step-${idx}-title`] = "Title required"
-      if (!step.targetSelector.trim())
-        newErrors[`step-${idx}-selector`] = "Selector required"
     })
 
     return newErrors
@@ -51,8 +48,6 @@ export default function CreateTourPage() {
         title: "",
         description: "",
         targetSelector: "",
-        position: "bottom",
-        order: prev.length + 1,
       },
     ])
   }
@@ -91,9 +86,7 @@ export default function CreateTourPage() {
         steps: steps.map((step) => ({
           title: step.title,
           description: step.description,
-          targetSelector: step.targetSelector,
-          position: step.position,
-          order: step.order,
+          targetSelector: step.targetSelector ?? null,
         })),
       })
 
@@ -181,30 +174,6 @@ export default function CreateTourPage() {
                     onChange={(e) => handleUpdateStep(idx, "targetSelector", e.target.value)}
                     error={errors[`step-${idx}-selector`]}
                   />
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Position</label>
-                      <select
-                        value={step.position}
-                        onChange={(e) => handleUpdateStep(idx, "position", e.target.value)}
-                        className="input-base"
-                      >
-                        <option value="top">Top</option>
-                        <option value="right">Right</option>
-                        <option value="bottom">Bottom</option>
-                        <option value="left">Left</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Order</label>
-                      <input
-                        type="text"
-                        value={step.order}
-                        disabled
-                        className="input-base bg-gray-100 cursor-not-allowed"
-                      />
-                    </div>
-                  </div>
                 </div>
               ))}
 

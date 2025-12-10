@@ -14,13 +14,16 @@ import { useState } from "react"
 export default function LandingPage() {
   const [copied, setCopied] = useState(false)
 
-  const scriptCode = `<script src="https://cdn.tourwidget.com/widget.js"></script>
-<script>
-  TourWidget.init({
-    tourId: "your-tour-id",
-    userId: "user_123" // optional
-  });
-</script>`
+  const scriptCode = `<script src="https://tourwidget-onboarding.vercel.app/tour.js"></script>
+    <script>
+      TourWidget.init({
+        tourId: 'your-tour-id',
+          showTourButton?: false, // optional
+          backgroundColor?: white, // optional
+          textColor?: black, // optional
+          primaryColor?: blue // optional
+      })
+    </script>`
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(scriptCode)
