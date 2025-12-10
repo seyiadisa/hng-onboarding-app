@@ -17,8 +17,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import Image from "next/image"
+import { X } from "lucide-react"
 
-export function DashboardSidebar() {
+interface DashboardSidebarProps {
+  className?: string
+  onClose?: () => void
+}
+
+export function DashboardSidebar({ className, onClose }: DashboardSidebarProps) {
   const router = useRouter()
   const pathname = usePathname()
   const { user, signOut } = useAuth()
@@ -27,6 +33,7 @@ export function DashboardSidebar() {
     try {
       await signOut()
       router.push("/auth/login")
+      if (onClose) onClose()
     } catch (error) {
       console.error("Error signing out:", error)
     }
@@ -39,9 +46,9 @@ export function DashboardSidebar() {
   ]
 
   return (
-    <aside className="w-64 bg-white border-r border-border flex flex-col min-h-screen">
-      <div className="p-6 border-b border-border">
-        <Link href="/" className="flex items-center gap-2">
+    <aside className={`w-64 bg-white border-r border-border flex flex-col h-full ${className || ""}`}>
+      <div className="p-4 md:p-6 border-b border-border flex justify-between items-center">
+        <Link href="/" className="flex items-center gap-2" onClick={onClose}>
           <Image
             src="/widgetlogo.jpeg"
             alt="Widget Logo"
@@ -51,14 +58,20 @@ export function DashboardSidebar() {
           />
           <h2 className="text-xl font-bold gradient-text">TourWidget</h2>
         </Link>
-        <p className="text-xs text-gray-500 mt-1">Dashboard</p>
+        {/* Mobile Close Button */}
+        {onClose && (
+          <Button variant="ghost" size="icon" className="lg:hidden" onClick={onClose}>
+            <X className="h-5 w-5" />
+          </Button>
+        )}
       </div>
 
-      <nav className="flex-1 p-6 space-y-2">
+      <nav className="flex-1 p-4 md:p-6 space-y-2 overflow-y-auto">
         {menuItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
+            onClick={onClose}
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
               pathname === item.href
                 ? "bg-primary text-white"
@@ -71,7 +84,7 @@ export function DashboardSidebar() {
         ))}
       </nav>
 
-      <div className="p-6 border-t border-border space-y-4">
+      <div className="p-4 md:p-6 border-t border-border space-y-4">
         <div className="flex items-center gap-3">
           <Avatar 
             initials={user?.name?.substring(0, 2).toUpperCase() || "U"} 
@@ -90,14 +103,14 @@ export function DashboardSidebar() {
               Logout
             </Button>
           </AlertDialogTrigger>
-          <AlertDialogContent>
+          <AlertDialogContent className="w-[90%] rounded-lg md:w-full">
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
               <AlertDialogDescription>
                 You will be redirected to the login page.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
+            <AlertDialogFooter className="flex-col gap-2 md:flex-row">
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleLogout}
