@@ -90,10 +90,9 @@ export default function CreateTourPage() {
         })),
       })
 
-      toast.success("Tour created successfully!")
       router.push("/dashboard")
     } catch (err) {
-      toast.error("Failed to create tour")
+      console.error(err)
     }
   }
 
@@ -168,7 +167,7 @@ export default function CreateTourPage() {
                     onChange={(e) => handleUpdateStep(idx, "description", e.target.value)}
                   />
                   <Input
-                    label="Target Selector"
+                    label="Target Selector (Optional)"
                     placeholder="#navbar, .btn-primary"
                     value={step.targetSelector}
                     onChange={(e) => handleUpdateStep(idx, "targetSelector", e.target.value)}
