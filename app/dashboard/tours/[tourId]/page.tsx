@@ -7,15 +7,28 @@ import { useToursStore } from "@/lib/store"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Modal } from "@/components/ui/modal"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Trash2 } from "lucide-react" // Import Trash2 icon
 import { toast } from "sonner"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export default function TourDetailsPage() {
   const params = useParams()
   const router = useRouter()
-  const { getTourById } = useToursStore()
+  // Import deleteStep
+  const { getTourById, deleteStep } = useToursStore()
   const tour = getTourById(params.tourId as string)
   const [embedModal, setEmbedModal] = useState(false)
+  const [stepToDelete, setStepToDelete] = useState<string | null>(null)
 
   if (!tour) {
     return (
@@ -28,6 +41,13 @@ export default function TourDetailsPage() {
     )
   }
 
+  const handleDeleteStep = async () => {
+    if (stepToDelete) {
+        await deleteStep(tour.id, stepToDelete)
+        setStepToDelete(null)
+    }
+  }
+
   const embedCode = `<script src="https://tourwidget-onboarding.vercel.app/tour.js"></script>
 <script>
   TourWidget.init({
@@ -38,6 +58,8 @@ export default function TourDetailsPage() {
   return (
     <div className="p-4 md:p-6 pb-20 md:pb-6">
       <div className="max-w-4xl mx-auto">
+        {/* ... (Header code remains same) ... */}
+        
         {/* Navigation */}
         <div className="mb-4 md:mb-6">
           <Link 
@@ -85,11 +107,11 @@ export default function TourDetailsPage() {
                     <h3 className="font-semibold truncate">{step.title}</h3>
                     <p className="text-sm text-gray-600 line-clamp-2">{step.description}</p>
                     <div className="flex gap-4 mt-2 text-xs text-gray-500 overflow-x-auto">
-                      <span className="bg-gray-100 px-2 py-0.5 rounded whitespace-nowrap">Selector: {step.targetSelector}</span>
+                      <span className="bg-gray-100 px-2 py-0.5 rounded whitespace-nowrap">Selector: {step.targetSelector || "N/A"}</span>
                     </div>
                   </div>
                   <div className="flex gap-2 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
-                    <Link href={`/dashboard/tours/${tour.id}/steps/${step.id}/edit`} className="w-full sm:w-auto">
+                    <Link href={`/dashboard/tours/${tour.id}/steps/${step.id}/edit`} className="flex-1 sm:flex-none">
                       <Button 
                         variant="secondary" 
                         size="sm"
@@ -98,6 +120,16 @@ export default function TourDetailsPage() {
                         Edit
                       </Button>
                     </Link>
+
+                    {/* Delete Trigger */}
+                    <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => setStepToDelete(step.id)}
+                    >
+                        <Trash2 size={16} />
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -106,10 +138,10 @@ export default function TourDetailsPage() {
         </Card>
       </div>
 
-      {/* Embed Modal */}
+      {/* Embed Modal ... */}
       <Modal isOpen={embedModal} onClose={() => setEmbedModal(false)} title="Embed Code">
-        <div className="p-1">
-          <p className="text-sm text-gray-600 mb-4">Copy this code and paste it into your website:</p>
+         {/* ... (Existing modal content) ... */}
+         <p className="text-sm text-gray-600 mb-4">Copy this code and paste it into your website:</p>
           <pre className="bg-gray-900 text-white p-4 rounded text-xs overflow-x-auto mb-4 whitespace-pre-wrap break-all">
             <code>{embedCode}</code>
           </pre>
@@ -124,8 +156,28 @@ export default function TourDetailsPage() {
           >
             Copy Code
           </Button>
-        </div>
       </Modal>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!stepToDelete} onOpenChange={(open) => !open && setStepToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this step?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this step? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+                onClick={handleDeleteStep}
+                className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -7,12 +7,23 @@ import { useToursStore } from "@/lib/store"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export default function EditStepPage() {
   const params = useParams()
   const router = useRouter()
-  // Import the new updateStep function
-  const { getTourById, updateStep } = useToursStore()
+  // Import deleteStep
+  const { getTourById, updateStep, deleteStep } = useToursStore()
   
   const tourId = params.tourId as string
   const stepId = params.stepId as string
@@ -24,6 +35,7 @@ export default function EditStepPage() {
   const [description, setDescription] = useState("")
   const [targetSelector, setTargetSelector] = useState("")
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     if (step) {
@@ -46,14 +58,12 @@ export default function EditStepPage() {
     const newErrors: Record<string, string> = {}
 
     if (!title?.trim()) newErrors.title = "Title is required"
-    // REMOVED validation for targetSelector (it is now optional)
 
     if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors)
         return
       }
 
-    // Use the new single-step update function
     await updateStep(tourId, stepId, {
         title,
         description,
@@ -63,13 +73,50 @@ export default function EditStepPage() {
     router.push(`/dashboard/tours/${tour.id}`)
   }
 
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true)
+      await deleteStep(tourId, stepId)
+      router.push(`/dashboard/tours/${tour.id}`)
+    } catch (error) {
+      console.error(error)
+      setIsDeleting(false)
+    }
+  }
+
   return (
     <div className="p-4 md:p-6 pb-20 md:pb-6">
       <div className="max-w-2xl mx-auto">
         <button onClick={() => router.back()} className="text-accent hover:underline text-sm mb-4">
           ← Back
         </button>
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">Edit Step</h1>
+        <div className="flex items-center justify-between mb-2">
+            <h1 className="text-2xl md:text-3xl font-bold">Edit Step</h1>
+            
+            {/* DELETE BUTTON with Confirmation */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm" type="button">
+                  Delete Step
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete this step?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This step will be permanently removed from your tour.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-white hover:bg-destructive/90">
+                    {isDeleting ? "Deleting..." : "Yes, Delete Step"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+        </div>
+        
         <p className="text-gray-600 mb-8">Update step details</p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -82,9 +129,7 @@ export default function EditStepPage() {
                 placeholder="e.g., #navbar, .btn-primary"
                 value={targetSelector}
                 onChange={(e) => setTargetSelector(e.target.value)}
-                // Removed error prop since it's optional
               />
-              {/* Removed Position Select Input */}
             </div>
           </Card>
 
