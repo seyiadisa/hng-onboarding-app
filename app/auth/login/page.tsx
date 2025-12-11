@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { PasswordInput } from "@/components/ui/password-input"
 import { Card } from "@/components/ui/card"
 import { toast } from "sonner"
-import { Toaster } from "@/components/ui/sonner" // import your Sonner component
+import { Toaster } from "@/components/ui/sonner"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -23,6 +23,27 @@ export default function LoginPage() {
     password: "",
   })
 
+  // Helper to clear specific field error
+  const clearError = (field: keyof typeof fieldErrors) => {
+    setFieldErrors((prev) => ({ ...prev, [field]: "" }))
+  }
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setEmail(value)
+    // Clear error immediately on type
+    if (fieldErrors.email) clearError("email")
+  }
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setPassword(value)
+    // Only clear error if password is at least 6 chars
+    if (fieldErrors.password && value.length >= 6) {
+      clearError("password")
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -30,7 +51,11 @@ export default function LoginPage() {
 
     const errors: any = {}
     if (!email.trim()) errors.email = "Email is required"
-    if (!password.trim()) errors.password = "Password is required"
+    if (!password.trim()) {
+      errors.password = "Password is required"
+    } else if (password.length < 6) {
+      errors.password = "Password must be at least 6 characters"
+    }
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors)
@@ -39,17 +64,16 @@ export default function LoginPage() {
     }
 
     try {
-  await signIn(email, password)
-  toast.success("Signed in successfully!")
+      await signIn(email, password)
+      toast.success("Signed in successfully!")
 
- 
-  setTimeout(() => {
-    router.push("/dashboard")
-  }, 2000)
-} catch (err: any) {
-  toast.error(err.message || "Invalid email or password")
-}setLoading(false)
-
+      setTimeout(() => {
+        router.push("/dashboard")
+      }, 2000)
+    } catch (err: any) {
+      toast.error(err.message || "Invalid email or password")
+    }
+    setLoading(false)
   }
 
   return (
@@ -66,7 +90,8 @@ export default function LoginPage() {
               type="email"
               placeholder="you@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
+              className={fieldErrors.email ? "border-red-500 focus-visible:ring-grey-100" : ""}
             />
             {fieldErrors.email && (
               <p className="text-red-500 text-sm">{fieldErrors.email}</p>
@@ -78,7 +103,8 @@ export default function LoginPage() {
               label="Password"
               placeholder="Your password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={handlePasswordChange}
+              className={fieldErrors.password ? "border-red-500 focus-visible:ring-grey-100" : ""}
             />
             {fieldErrors.password && (
               <p className="text-red-500 text-sm">{fieldErrors.password}</p>
