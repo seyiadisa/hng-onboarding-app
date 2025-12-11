@@ -22,8 +22,9 @@ interface ToursStore {
   fetchTours: () => Promise<void>
   addTour: (tour: CreateTourInput) => Promise<void>
   updateTour: (tour: Tour) => Promise<void>
-  // New action specifically for steps
+  // Actions for steps
   updateStep: (tourId: string, stepId: string, stepData: { title: string; description: string; targetSelector: string }) => Promise<void>
+  deleteStep: (tourId: string, stepId: string) => Promise<void>
   deleteTour: (id: string) => Promise<void>
   getTourById: (id: string) => Tour | undefined
 }
@@ -55,7 +56,17 @@ export const useToursStore = create<ToursStore>((set, get) => ({
         ...tour,
         createdDate: tour.created_date,
         steps: (tour.steps || [])
-          .sort((a: any, b: any) => (a.created_at > b.created_at ? 1 : -1)) 
+          // FIXED SORT: Use ID as a tie-breaker for stable ordering
+          .sort((a: any, b: any) => {
+            const timeA = new Date(a.created_at).getTime()
+            const timeB = new Date(b.created_at).getTime()
+            
+            // 1. Sort by time first
+            if (timeA !== timeB) return timeA - timeB
+            
+            // 2. If times are equal, sort by ID (stable fallback)
+            return a.id.localeCompare(b.id)
+          })
           .map((step: any) => ({
             id: step.id,
             tourId: step.tour_id,
@@ -146,7 +157,6 @@ export const useToursStore = create<ToursStore>((set, get) => ({
     }
   },
 
-  // --- NEW FUNCTION: Fixes the duplication bug ---
   updateStep: async (tourId, stepId, stepData) => {
     // 1. Optimistic Update (Update UI immediately)
     set((state) => ({
@@ -162,7 +172,7 @@ export const useToursStore = create<ToursStore>((set, get) => ({
 
     const updatePromise = async () => {
       // 2. Database Update
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("steps")
         .update({
           title: stepData.title,
@@ -170,12 +180,17 @@ export const useToursStore = create<ToursStore>((set, get) => ({
           target_selector: stepData.targetSelector || "" // Handle empty
         })
         .eq("id", stepId)
+        .select() // Forces return to catch RLS errors
 
-      if (error) {
-        // Revert on error would go here, but for now we just throw
-        await get().fetchTours() // Re-fetch to sync
-        throw error
+      if (error) throw error
+      
+      // If data is empty, it means RLS blocked it or ID wasn't found
+      if (!data || data.length === 0) {
+        throw new Error("Update failed: Step not found or permission denied")
       }
+      
+      // 3. Sync: Ensure backend matches frontend
+      await get().fetchTours()
     }
 
     try {
@@ -186,6 +201,40 @@ export const useToursStore = create<ToursStore>((set, get) => ({
       })
     } catch (e) {
         console.error(e)
+        await get().fetchTours() // Revert/Sync on error
+    }
+  },
+
+  deleteStep: async (tourId, stepId) => {
+    // 1. Optimistic Update: Remove step from local state immediately
+    const previousTours = get().tours
+    set((state) => ({
+      tours: state.tours.map((t) =>
+        t.id === tourId
+          ? { ...t, steps: t.steps.filter((s) => s.id !== stepId) }
+          : t
+      ),
+    }))
+
+    const deletePromise = async () => {
+      // 2. Database Delete
+      const { error } = await supabase.from("steps").delete().eq("id", stepId)
+      
+      if (error) {
+        // Revert local state if DB fails
+        set({ tours: previousTours })
+        throw error
+      }
+    }
+
+    try {
+      await toast.promise(deletePromise(), {
+        loading: "Deleting step...",
+        success: "Step deleted",
+        error: (err) => `Failed to delete step: ${err.message}`,
+      })
+    } catch (e) {
+      console.error(e)
     }
   },
 
