@@ -1,7 +1,7 @@
 // lib/store.ts
 import { create } from "zustand"
 import { supabase } from "./supabase"
-import { toast } from "sonner" 
+import { toast } from "sonner"
 import type { Tour } from "./types"
 
 type CreateTourInput = {
@@ -22,6 +22,8 @@ interface ToursStore {
   fetchTours: () => Promise<void>
   addTour: (tour: CreateTourInput) => Promise<void>
   updateTour: (tour: Tour) => Promise<void>
+  // New action specifically for steps
+  updateStep: (tourId: string, stepId: string, stepData: { title: string; description: string; targetSelector: string }) => Promise<void>
   deleteTour: (id: string) => Promise<void>
   getTourById: (id: string) => Tour | undefined
 }
@@ -41,8 +43,6 @@ export const useToursStore = create<ToursStore>((set, get) => ({
         return
       }
 
-      // 1. Select tours and steps
-      // Note: Since 'order' column is deleted, we rely on default DB sort or ID
       const { data, error } = await supabase
         .from("tours")
         .select("*, steps(*)")
@@ -51,22 +51,17 @@ export const useToursStore = create<ToursStore>((set, get) => ({
 
       if (error) throw error
 
-      // 2. Map response to App Types
       const tours = (data || []).map((tour: any) => ({
         ...tour,
         createdDate: tour.created_date,
-        // Remove .sort by step_order since it doesn't exist
         steps: (tour.steps || [])
-          // Optional: Sort by ID or created_at if available to keep them stable
           .sort((a: any, b: any) => (a.created_at > b.created_at ? 1 : -1)) 
           .map((step: any) => ({
             id: step.id,
             tourId: step.tour_id,
             title: step.title,
             description: step.description,
-            // Map DB snake_case to App camelCase
             targetSelector: step.target_selector || "", 
-            // Removed position and order properties entirely
           })),
       }))
 
@@ -80,13 +75,11 @@ export const useToursStore = create<ToursStore>((set, get) => ({
 
   addTour: async (tourData) => {
     set({ loading: true })
-
     const createPromise = async () => {
       const { data: { session }, error: authError } = await supabase.auth.getSession()
       if (authError) throw authError
       if (!session?.user) throw new Error("Not authenticated")
 
-      // 1. Create Tour
       const { data: newTour, error: tourError } = await supabase
         .from("tours")
         .insert({
@@ -100,27 +93,17 @@ export const useToursStore = create<ToursStore>((set, get) => ({
 
       if (tourError) throw tourError
 
-      // 2. Create Steps
-      // IMPORTANT: Ensure no 'undefined' values are sent
       if (tourData.steps && tourData.steps.length > 0) {
         const stepsToInsert = tourData.steps.map((step) => ({
           tour_id: newTour.id,
-          title: step.title || "Untitled Step", // Fallback if empty
+          title: step.title || "Untitled Step",
           description: step.description || "",
-          target_selector: step.targetSelector || "body", // Ensure not null if DB requires it
+          target_selector: step.targetSelector || "", 
         }))
 
         const { error: stepsError } = await supabase.from("steps").insert(stepsToInsert)
-        
-        if (stepsError) {
-            // If steps fail, we might want to clean up the empty tour
-            // await supabase.from("tours").delete().eq("id", newTour.id) 
-            throw stepsError
-        }
+        if (stepsError) throw stepsError
       }
-
-      // 3. Update Local State (Optimistic or Refresh)
-      // It's safer to just fetch fresh data to ensure IDs are correct
       await get().fetchTours()
     }
 
@@ -137,13 +120,8 @@ export const useToursStore = create<ToursStore>((set, get) => ({
 
   updateTour: async (updatedTour) => {
     set({ loading: true })
-
     const updatePromise = async () => {
-      const { data: { session }, error: authError } = await supabase.auth.getSession()
-      if (authError) throw authError
-      if (!session?.user) throw new Error("Not authenticated")
-
-      // 1. Update Tour Details
+      // Update Tour Details Only
       const { error: tourError } = await supabase
         .from("tours")
         .update({
@@ -154,24 +132,6 @@ export const useToursStore = create<ToursStore>((set, get) => ({
         .eq("id", updatedTour.id)
 
       if (tourError) throw tourError
-
-      // 2. Delete old steps (Simple strategy: delete all, re-insert)
-      await supabase.from("steps").delete().eq("tour_id", updatedTour.id)
-
-      // 3. Insert new steps
-      if (updatedTour.steps && updatedTour.steps.length > 0) {
-        const stepsToInsert = updatedTour.steps.map((step) => ({
-          tour_id: updatedTour.id,
-          title: step.title,
-          description: step.description,
-          target_selector: step.targetSelector,
-        }))
-
-        const { error: stepsError } = await supabase.from("steps").insert(stepsToInsert)
-        if (stepsError) throw stepsError
-      }
-
-      // 4. Update Local State
       await get().fetchTours()
     }
 
@@ -183,6 +143,49 @@ export const useToursStore = create<ToursStore>((set, get) => ({
       })
     } finally {
       set({ loading: false })
+    }
+  },
+
+  // --- NEW FUNCTION: Fixes the duplication bug ---
+  updateStep: async (tourId, stepId, stepData) => {
+    // 1. Optimistic Update (Update UI immediately)
+    set((state) => ({
+      tours: state.tours.map((t) => 
+        t.id === tourId 
+          ? {
+              ...t,
+              steps: t.steps.map(s => s.id === stepId ? { ...s, ...stepData } : s)
+            }
+          : t
+      )
+    }))
+
+    const updatePromise = async () => {
+      // 2. Database Update
+      const { error } = await supabase
+        .from("steps")
+        .update({
+          title: stepData.title,
+          description: stepData.description,
+          target_selector: stepData.targetSelector || "" // Handle empty
+        })
+        .eq("id", stepId)
+
+      if (error) {
+        // Revert on error would go here, but for now we just throw
+        await get().fetchTours() // Re-fetch to sync
+        throw error
+      }
+    }
+
+    try {
+      await toast.promise(updatePromise(), {
+        loading: "Updating step...",
+        success: "Step updated successfully!",
+        error: "Failed to update step"
+      })
+    } catch (e) {
+        console.error(e)
     }
   },
 
