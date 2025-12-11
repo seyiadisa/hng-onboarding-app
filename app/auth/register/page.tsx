@@ -26,6 +26,32 @@ export default function RegisterPage() {
     password: "",
   })
 
+  // Helper to clear specific field error
+  const clearError = (field: keyof typeof fieldErrors) => {
+    setFieldErrors((prev) => ({ ...prev, [field]: "" }))
+  }
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setName(value)
+    if (fieldErrors.name) clearError("name")
+  }
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setEmail(value)
+    if (fieldErrors.email) clearError("email")
+  }
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setPassword(value)
+    // Only clear error if password is at least 6 chars
+    if (fieldErrors.password && value.length >= 6) {
+      clearError("password")
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -34,7 +60,12 @@ export default function RegisterPage() {
     const errors: any = {}
     if (!name.trim()) errors.name = "Full name is required"
     if (!email.trim()) errors.email = "Email is required"
-    if (!password.trim()) errors.password = "Password is required"
+    
+    if (!password.trim()) {
+      errors.password = "Password is required"
+    } else if (password.length < 6) {
+      errors.password = "Password must be at least 6 characters"
+    }
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors)
@@ -43,15 +74,16 @@ export default function RegisterPage() {
     }
 
     try {
-  await signUp(email, password, name)
-  toast.success("Account created successfully!", { duration: 2000 })
+      await signUp(email, password, name)
+      toast.success("Account created successfully!", { duration: 2000 })
 
-  setTimeout(() => {
-    router.push("/auth/login")
-  }, 2000)
-} catch (err: any) {
-  toast.error(err.message || "Registration failed. Please try again.", { duration: 4000 })
-} setLoading(false)
+      setTimeout(() => {
+        router.push("/auth/login")
+      }, 2000)
+    } catch (err: any) {
+      toast.error(err.message || "Registration failed. Please try again.", { duration: 4000 })
+    }
+    setLoading(false)
   }
 
   return (
@@ -68,7 +100,8 @@ export default function RegisterPage() {
               id="name"
               placeholder="Your name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={handleNameChange}
+              className={fieldErrors.name ? "border-red-500 focus-visible:ring-grey-100" : ""}
             />
             {fieldErrors.name && (
               <p className="text-red-500 text-sm">{fieldErrors.name}</p>
@@ -82,7 +115,8 @@ export default function RegisterPage() {
               type="email"
               placeholder="you@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
+              className={fieldErrors.email ? "border-red-500 focus-visible:ring-grey-100" : ""}
             />
             {fieldErrors.email && (
               <p className="text-red-500 text-sm">{fieldErrors.email}</p>
@@ -95,7 +129,8 @@ export default function RegisterPage() {
               label="Password"
               placeholder="Create a password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={handlePasswordChange}
+              className={fieldErrors.password ? "border-red-500 focus-visible:ring-grey-100" : ""}
             />
             {fieldErrors.password && (
               <p className="text-red-500 text-sm">{fieldErrors.password}</p>
